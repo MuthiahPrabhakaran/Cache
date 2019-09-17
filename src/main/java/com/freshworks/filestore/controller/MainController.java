@@ -12,9 +12,9 @@ public class MainController {
         j.put("1", "2");
 		
 		try {
-			fileWriter.add("key1", j, 10);
-			fileWriter.add("key2", j);
-			fileWriter.add("key3", j,5);
+			for(int i=0;i<10000;i++) {
+				fileWriter.add("key-"+i, j,5);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

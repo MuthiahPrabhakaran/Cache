@@ -10,9 +10,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Timer;
@@ -27,6 +24,7 @@ import com.google.gson.Gson;
 public class KeyStoreWriter {
 
 	String homeDir = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
+	double fileSize = 10;
 	String path;
 	Timer timer;
 
@@ -52,29 +50,21 @@ public class KeyStoreWriter {
 	}
 
 	public boolean add(String key, JSONObject value) throws IOException {
-		key = key.trim();
-		hasKey(key);
-		BufferedWriter bufferWriter = null;
-		boolean isWrittenToFile = false;
-		try {
-			FileWriter fileWriter = new FileWriter(path, true);
-			bufferWriter = new BufferedWriter(fileWriter);
-			bufferWriter.append(key + "=" + value);
-			bufferWriter.newLine();
-			isWrittenToFile = true;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			bufferWriter.close();
-		}
-		return isWrittenToFile;
+		return write(key, value, 0);
 	}
 
 	public boolean add(String key, JSONObject value, long delay) throws IOException {
+		return write(key, value, delay);
+	}
+	
+	public boolean write(String key, JSONObject value, long delay) throws IOException {
 		key = key.trim();
 		hasKey(key);
 		BufferedWriter bufferWriter = null;
 		boolean isWrittenToFile = false;
+		if(fileSize() == this.fileSize) {
+			throw new IOException("File size exceeds");
+		}
 		try {
 			FileWriter fileWriter = new FileWriter(path, true);
 			bufferWriter = new BufferedWriter(fileWriter);
@@ -159,5 +149,13 @@ public class KeyStoreWriter {
 		datetime = datetime.replace(":", "");
 		return datetime + "_" + millis;
 	}
+	
+	public double fileSize() throws FileNotFoundException {
+		File file = new File(path);
+		if(!file.exists()) 
+			throw new FileNotFoundException();
+		System.out.println(file.length());
+		return file.length()/(1024*1024*1024);	
+		}
 
 }
