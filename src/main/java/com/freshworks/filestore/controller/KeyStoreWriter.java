@@ -45,6 +45,11 @@ public class KeyStoreWriter {
 		createFile(path);
 	}
 
+	/**
+	 * @param path
+	 *            creates file in specified location if no location is given, it
+	 *            will create in documents directory on Windows OS
+	 */
 	public void createFile(String path) {
 		File file = new File(path);
 		try {
@@ -75,7 +80,7 @@ public class KeyStoreWriter {
 			checkObjectSize(value);
 			FileWriter fileWriter = new FileWriter(path, true);
 			bufferWriter = new BufferedWriter(fileWriter);
-			if(!isFileNew)
+			if (!isFileNew)
 				bufferWriter.newLine();
 			bufferWriter.append(key + "=" + value);
 			isWrittenToFile = true;
@@ -91,7 +96,6 @@ public class KeyStoreWriter {
 		}
 		return isWrittenToFile;
 	}
-	
 
 	private void checkLength(String key) throws IOException {
 		key = key.trim();
@@ -179,8 +183,8 @@ public class KeyStoreWriter {
 
 	private void checkObjectSize(JSONObject jsonObject) throws IOException {
 
-			if (ObjectSizeCalculator.getObjectSize(jsonObject) / 1024 > allowedJsonSize) {
-				throw new IOException("JSON Size exceeded");
+		if (ObjectSizeCalculator.getObjectSize(jsonObject) / 1024 > allowedJsonSize) {
+			throw new IOException("JSON Size exceeded");
 		}
 
 	}
