@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,10 +20,15 @@ import java.util.TimerTask;
 
 import javax.swing.JFileChooser;
 
+import org.json.JSONObject;
+
+import com.google.gson.Gson;
+
 public class KeyStoreWriter {
 
 	String homeDir = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
 	String path;
+	Timer timer;
 
 	KeyStoreWriter() {
 		this.path = new StringBuffer(homeDir).append("\\").append("KeyStore_").append(generateUniqueFileName())
@@ -45,7 +51,9 @@ public class KeyStoreWriter {
 		}
 	}
 
-	public boolean setProperty(String key, String value, long delay) throws IOException {
+	public boolean add(String key, JSONObject value) throws IOException {
+		key = key.trim();
+		hasKey(key);
 		BufferedWriter bufferWriter = null;
 		boolean isWrittenToFile = false;
 		try {
@@ -54,9 +62,28 @@ public class KeyStoreWriter {
 			bufferWriter.append(key + "=" + value);
 			bufferWriter.newLine();
 			isWrittenToFile = true;
-			
-			if(delay>0) {
-				scheduleDeletion(delay*1000, key);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			bufferWriter.close();
+		}
+		return isWrittenToFile;
+	}
+
+	public boolean add(String key, JSONObject value, long delay) throws IOException {
+		key = key.trim();
+		hasKey(key);
+		BufferedWriter bufferWriter = null;
+		boolean isWrittenToFile = false;
+		try {
+			FileWriter fileWriter = new FileWriter(path, true);
+			bufferWriter = new BufferedWriter(fileWriter);
+			bufferWriter.append(key + "=" + value);
+			bufferWriter.newLine();
+			isWrittenToFile = true;
+			if (delay > 0) {
+				timer = new Timer();
+				timer.schedule(new TtlTask(key, timer), delay * 1000);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -65,64 +92,63 @@ public class KeyStoreWriter {
 		}
 		return isWrittenToFile;
 	}
-	
-	
-	public void scheduleDeletion(long delay, final String key) {
-		TimerTask task = new TimerTask() {
-			@Override
-			public void run() {
-				delete(key);
-				System.out.println("scheduled deletion");
-				//Cannot refer to the non-final local variable key defined in an enclosing scope
-			}
-		};
-		
-		Timer timer = new Timer();
-		timer.schedule(task, delay);
-	}
-	
-	public String loadFile(String key) {
+
+	public String load(String key) {
 		Properties prop = new Properties();
 		try {
 			try (InputStream inputStream = new FileInputStream(path)) {
-				/*
-				 * if(inputStream == null) { throw new FileNotFoundException("File Not Found");
-				 * }
-				 */
+				if (inputStream == null) {
+					throw new FileNotFoundException("File Not Found");
+				}
 				prop.load(inputStream);
-				System.out.println(prop.getProperty(key));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println(new Gson().fromJson(prop.getProperty(key), JSONObject.class));
 		return prop.getProperty(key);
 	}
 
-	public boolean delete(String key) {
-		boolean isDeleted = false;
-		Properties prop = new Properties();
-		try {
-			prop.load(new FileInputStream(path));
-			prop.remove(key);
-			writeToFile(prop);
-			isDeleted = true;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+	public void hasKey(String key) throws IOException {
+		if (load(key) != null) {
+			throw new IOException("Key is already there");
+		}
+	}
+	
+	public boolean bulkWrite(Properties prop) {
+		boolean isAdded = false;
+		try (OutputStream output = new FileOutputStream(path)){
+			prop.store(output, null);
+			isAdded = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return isDeleted;
-
+		return isAdded;
 	}
 
-	public void writeToFile(Properties prop) {
-		try (OutputStream output = new FileOutputStream(path)) {
-			prop.store(output, null);
-		} catch (Exception e) {
-			e.printStackTrace();
+	public void remove(String key) throws IOException{
+		FileReader fileReader = new FileReader(path);
+		Properties prop = new Properties();
+		prop.load(fileReader);
+		prop.remove(key);
+		bulkWrite(prop);
+	}
+
+	class TtlTask extends TimerTask {
+		String key;
+		Timer timer;
+		TtlTask(String key, Timer timer) {
+			this.key = key;
+			this.timer = timer;
+		}
+		
+		public void run() {
+			try {
+				remove(key);
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+			timer.cancel();
 		}
 	}
 
