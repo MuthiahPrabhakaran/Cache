@@ -21,10 +21,15 @@ import org.json.JSONObject;
 
 import com.google.gson.Gson;
 
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
+
 public class KeyStoreWriter {
 
 	String homeDir = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
 	double fileSize = 10;
+	short allowedLength = 32;
+	short allowedJsonSize = 1;
+	boolean isFileNew = true;
 	String path;
 	Timer timer;
 
@@ -56,21 +61,25 @@ public class KeyStoreWriter {
 	public boolean add(String key, JSONObject value, long delay) throws IOException {
 		return write(key, value, delay);
 	}
-	
-	public boolean write(String key, JSONObject value, long delay) throws IOException {
+
+	private boolean write(String key, JSONObject value, long delay) throws IOException {
+		checkLength(key);
 		key = key.trim();
 		hasKey(key);
 		BufferedWriter bufferWriter = null;
 		boolean isWrittenToFile = false;
-		if(fileSize() == this.fileSize) {
+		if (fileSize() == this.fileSize) {
 			throw new IOException("File size exceeds");
 		}
 		try {
+			checkObjectSize(value);
 			FileWriter fileWriter = new FileWriter(path, true);
 			bufferWriter = new BufferedWriter(fileWriter);
+			if(!isFileNew)
+				bufferWriter.newLine();
 			bufferWriter.append(key + "=" + value);
-			bufferWriter.newLine();
 			isWrittenToFile = true;
+			isFileNew = false;
 			if (delay > 0) {
 				timer = new Timer();
 				timer.schedule(new TtlTask(key, timer), delay * 1000);
@@ -81,6 +90,15 @@ public class KeyStoreWriter {
 			bufferWriter.close();
 		}
 		return isWrittenToFile;
+	}
+	
+
+	private void checkLength(String key) throws IOException {
+		key = key.trim();
+		if (key == null)
+			throw new IOException("Invalid key");
+		else if (key.length() > allowedLength)
+			throw new IOException("key length is exceeded");
 	}
 
 	public String load(String key) {
@@ -99,15 +117,15 @@ public class KeyStoreWriter {
 		return prop.getProperty(key);
 	}
 
-	public void hasKey(String key) throws IOException {
+	private void hasKey(String key) throws IOException {
 		if (load(key) != null) {
 			throw new IOException("Key is already there");
 		}
 	}
-	
-	public boolean bulkWrite(Properties prop) {
+
+	private boolean bulkWrite(Properties prop) {
 		boolean isAdded = false;
-		try (OutputStream output = new FileOutputStream(path)){
+		try (OutputStream output = new FileOutputStream(path)) {
 			prop.store(output, null);
 			isAdded = true;
 		} catch (Exception e) {
@@ -116,7 +134,7 @@ public class KeyStoreWriter {
 		return isAdded;
 	}
 
-	public void remove(String key) throws IOException{
+	public void remove(String key) throws IOException {
 		FileReader fileReader = new FileReader(path);
 		Properties prop = new Properties();
 		prop.load(fileReader);
@@ -127,35 +145,43 @@ public class KeyStoreWriter {
 	class TtlTask extends TimerTask {
 		String key;
 		Timer timer;
+
 		TtlTask(String key, Timer timer) {
 			this.key = key;
 			this.timer = timer;
 		}
-		
+
 		public void run() {
 			try {
 				remove(key);
-			} catch(IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			timer.cancel();
 		}
 	}
 
-	public String generateUniqueFileName() {
+	private String generateUniqueFileName() {
 		long millis = System.currentTimeMillis();
 		String datetime = new Date().toString();
 		datetime = datetime.replace(" ", "");
 		datetime = datetime.replace(":", "");
 		return datetime + "_" + millis;
 	}
-	
-	public double fileSize() throws FileNotFoundException {
+
+	private double fileSize() throws FileNotFoundException {
 		File file = new File(path);
-		if(!file.exists()) 
+		if (!file.exists())
 			throw new FileNotFoundException();
 		System.out.println(file.length());
-		return file.length()/(1024*1024*1024);	
+		return file.length() / (1024 * 1024 * 1024);
+	}
+
+	private void checkObjectSize(JSONObject jsonObject) throws IOException {
+
+			if (ObjectSizeCalculator.getObjectSize(jsonObject) / 1024 > allowedJsonSize) {
+				throw new IOException("JSON Size exceeded");
 		}
 
+	}
 }
