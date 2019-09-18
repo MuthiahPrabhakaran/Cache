@@ -17,12 +17,13 @@ import junit.framework.Assert;
 
 public class KeyStoreTest {
 
-	@Rule public ExpectedException exception = ExpectedException.none();
+	@Rule
+	public ExpectedException exception = ExpectedException.none();
 
 	static KeyStore keyStore;
 	static JSONObject jsonObject;
 	String employeeDetails = "employeeDetails";
-	
+
 	@BeforeClass
 	public static void initializeVariables() {
 		try {
@@ -40,7 +41,7 @@ public class KeyStoreTest {
 		File file = new File(keyStore.getPath());
 		Assert.assertTrue(file.exists());
 	}
-	
+
 	@Test
 	public void testCreateFileWithDefinedPath() {
 		KeyStore keyStoreNew = null;
@@ -62,30 +63,30 @@ public class KeyStoreTest {
 			e.printStackTrace();
 		}
 	}
-	
-	@Test(expected = NullPointerException.class)
+
+	@Test
 	public void testAddWithTTL() {
 		try {
 			Assert.assertTrue(keyStore.add("employee2", jsonObject, 10));
-			Assert.assertEquals(jsonObject.toString(), keyStore.get(employeeDetails).toString());
+			Assert.assertEquals(jsonObject.toString(), keyStore.get("employee2").toString());
 			Thread.sleep(10000);
 			keyStore.get("employee2");
 		} catch (IOException | FileStoreException | InterruptedException e) {
-			e.printStackTrace();
+			assertInvalidKey(e);
 		}
 	}
-	
-	@Test(expected = NullPointerException.class)
+
+	@Test
 	public void testRemove() {
 		try {
 			Assert.assertTrue(keyStore.add("employee1", jsonObject));
 			Assert.assertTrue(keyStore.remove("employee1"));
 			keyStore.get("employee1");
 		} catch (IOException | FileStoreException e) {
-			e.printStackTrace();
+			assertInvalidKey(e);
 		}
 	}
-	
+
 	@Test
 	public void testWithEmptyKey() {
 		try {
@@ -95,7 +96,7 @@ public class KeyStoreTest {
 			Assert.assertEquals("Invalid key", e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testWithNullKey() {
 		try {
@@ -105,8 +106,7 @@ public class KeyStoreTest {
 			Assert.assertEquals("Invalid key", e.getMessage());
 		}
 	}
-	
-	
+
 	@Test
 	public void testWithKeyHas33Chars() {
 		try {
@@ -116,7 +116,7 @@ public class KeyStoreTest {
 			Assert.assertEquals("key length is exceeded than 32 characters", e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testWithDuplicateKey() {
 		try {
@@ -128,15 +128,67 @@ public class KeyStoreTest {
 	}
 
 	@Test
-	public void testJsonSize() {
-		jsonObject.put("address1", "");
-		jsonObject.put("country", "India");
+	public void testLoadWithInvalidKey() {
 		try {
-			keyStore.add("employeeDetails_2", jsonObject);
-		} catch (IOException | FileStoreException e) {
-			e.printStackTrace();
-			//Assert.assertTrue(e instanceof FileStoreException);
-			//Assert.assertEquals("Key is already there", e.getMessage());
+			keyStore.get("Invalid Key");
+		} catch (FileStoreException | IOException e) {
+			assertInvalidKey(e);
 		}
+	}
+	
+	@Test
+	public void testLoadWithNullKey() {
+		try {
+			keyStore.get(null);
+		} catch (FileStoreException | IOException e) {
+			assertEmptyKey(e);
+		}
+	}
+	
+	@Test
+	public void testLoadWithEmptyKey() {
+		try {
+			keyStore.get(" ");
+		} catch (FileStoreException | IOException e) {
+			assertEmptyKey(e);
+		}
+	}
+	
+	
+	@Test
+	public void testRemoveWithInvalidKey() {
+		try {
+			keyStore.remove("Invalid Key");
+		} catch (FileStoreException | IOException e) {
+			assertInvalidKey(e);
+		}
+	}
+	
+	@Test
+	public void testRemoveWithNullKey() {
+		try {
+			keyStore.remove(null);
+		} catch (FileStoreException | IOException e) {
+			assertEmptyKey(e);
+		}
+	}
+	
+	@Test
+	public void testRemoveWithEmptyKey() {
+		try {
+			keyStore.remove(" ");
+		} catch (FileStoreException | IOException e) {
+			assertEmptyKey(e);
+		}
+	}
+	
+	public void assertInvalidKey(Exception e) {
+		Assert.assertTrue(e instanceof FileStoreException);
+		Assert.assertEquals("Key is not present in the file", e.getMessage());
+	}
+	
+	public void assertEmptyKey(Exception e) {
+		Assert.assertTrue(e instanceof FileStoreException);
+		Assert.assertEquals("Invalid key", e.getMessage());
 	}
 }

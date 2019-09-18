@@ -83,7 +83,7 @@ public class KeyStore {
 	private boolean write(String key, JSONObject value, long delay) throws IOException, FileStoreException {
 		checkLength(key);
 		key = key.trim();
-		hasKey(key);
+		checkKey(key);
 		BufferedWriter bufferWriter = null;
 		boolean isWrittenToFile = false;
 		if (fileSize() == this.fileSize) {
@@ -150,6 +150,7 @@ public class KeyStore {
 	 * @throws IOException
 	 */
 	public JsonObject get(String key) throws IOException, FileStoreException {
+		validateKey(key);
 		String value = load(key);
 		JsonElement element = new Gson().fromJson(value, JsonElement.class);
 		return element.getAsJsonObject();
@@ -161,10 +162,15 @@ public class KeyStore {
 	 * @param key
 	 * @throws IOException
 	 */
-	private void hasKey(String key) throws FileStoreException, IOException {
+	private void checkKey(String key) throws FileStoreException, IOException {
 		if (load(key) != null) {
 			throw new FileStoreException("Key is already there");
 		}
+	}
+	
+	
+	private boolean hasKey(String key) throws FileStoreException, IOException {
+		return (load(key) == null)?false:true;
 	}
 
 	/**
@@ -192,6 +198,7 @@ public class KeyStore {
 	 * @throws IOException
 	 */
 	synchronized public boolean remove(String key) throws IOException, FileStoreException {
+		validateKey(key);
 		FileReader fileReader = new FileReader(path);
 		Properties prop = new Properties();
 		prop.load(fileReader);
@@ -255,6 +262,13 @@ public class KeyStore {
 		if (ObjectSizeCalculator.getObjectSize(jsonObject) / 1024 > allowedJsonSize) {
 			throw new FileStoreException("JSON Size exceeded");
 		}
+	}
+	
+	private void validateKey(String key) throws FileStoreException, IOException {
+		if (key == null || key.trim().isEmpty())
+			throw new FileStoreException("Invalid key");
+		else if(!hasKey(key))
+			throw new FileStoreException("Key is not present in the file");
 	}
 
 	public String getPath() {

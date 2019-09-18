@@ -24,7 +24,7 @@ public class MainController {
 				//fileWriter.add("key-"+i, j,5);
 			//}
 			fileWriter.add("key1", j);
-			fileWriter.add("key1", jj);
+			fileWriter.get("sdfsdf");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
