@@ -1,4 +1,4 @@
-package com.freshworks.filestore.controller;
+package com.freshworks.filestore;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,16 +31,15 @@ import com.google.gson.JsonObject;
 public class KeyStore {
 
 	private String homeDir = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
-	private double fileSize = 10;
+	private double fileSize = 1;
 	private short allowedLength = 32;
-	private short allowedJsonSize = 1;
+	private short allowedJsonSize = 16;
 	private boolean isFileNew = true;
 	private String path;
 	private Timer timer;
 
 	/**
 	 * Creates file in the default location. Documents in Windows OS
-	 * 
 	 * @throws FileStoreException
 	 */
 	KeyStore() throws FileStoreException {
@@ -55,7 +54,6 @@ public class KeyStore {
 
 	/**
 	 * Creates file in the specified location.
-	 * 
 	 * @throws FileStoreException
 	 */
 	KeyStore(String path) throws FileStoreException {
@@ -69,7 +67,7 @@ public class KeyStore {
 
 	}
 
-	public void createFile(String path) throws IOException {
+	private void createFile(String path) throws IOException {
 		File file = new File(path);
 		file.createNewFile();
 	}
@@ -119,10 +117,9 @@ public class KeyStore {
 	 * @throws FileStoreException
 	 */
 	private void checkLength(String key) throws FileStoreException {
-		key = key.trim();
-		if (key == null)
+		if (key == null || key.isEmpty())
 			throw new FileStoreException("Invalid key");
-		else if (key.length() > allowedLength)
+		else if (key.trim().length() > allowedLength)
 			throw new FileStoreException("key length is exceeded than 32 characters");
 	}
 
@@ -134,7 +131,6 @@ public class KeyStore {
 	 * @throws IOException
 	 */
 	private String load(String key) throws IOException, FileStoreException {
-		hasKey(key);
 		Properties prop = new Properties();
 		try {
 			try (InputStream inputStream = new FileInputStream(path)) {
@@ -195,13 +191,13 @@ public class KeyStore {
 	 * @param key
 	 * @throws IOException
 	 */
-	public void remove(String key) throws IOException, FileStoreException {
-		hasKey(key);
+	synchronized public boolean remove(String key) throws IOException, FileStoreException {
 		FileReader fileReader = new FileReader(path);
 		Properties prop = new Properties();
 		prop.load(fileReader);
 		prop.remove(key);
 		bulkWrite(prop);
+		return true;
 	}
 
 	/*
@@ -245,7 +241,6 @@ public class KeyStore {
 		File file = new File(path);
 		if (!file.exists())
 			throw new FileNotFoundException();
-		System.out.println(file.length());
 		return file.length() / (1024 * 1024 * 1024);
 	}
 
@@ -256,9 +251,9 @@ public class KeyStore {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("restriction")
-	private void checkObjectSize(JSONObject jsonObject) throws IOException {
+	private void checkObjectSize(JSONObject jsonObject) throws FileStoreException {
 		if (ObjectSizeCalculator.getObjectSize(jsonObject) / 1024 > allowedJsonSize) {
-			throw new IOException("JSON Size exceeded");
+			throw new FileStoreException("JSON Size exceeded");
 		}
 	}
 

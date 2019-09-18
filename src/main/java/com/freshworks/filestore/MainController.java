@@ -1,15 +1,17 @@
-package com.freshworks.filestore.controller;
+package com.freshworks.filestore;
 
 import java.io.IOException;
 
 import org.json.JSONObject;
 
+import com.freshworks.filestore.exception.FileStoreException;
+
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 
 public class MainController {
 
-	public static void main(String[] args) {
-		KeyStoreWriter fileWriter = new KeyStoreWriter();
+	public static void main(String[] args) throws FileStoreException {
+		KeyStore fileWriter = new KeyStore();
         JSONObject j = new JSONObject();
         j.put("1", "SD");
         
@@ -22,7 +24,7 @@ public class MainController {
 				//fileWriter.add("key-"+i, j,5);
 			//}
 			fileWriter.add("key1", j);
-			fileWriter.add("key2", jj);
+			fileWriter.add("key1", jj);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
