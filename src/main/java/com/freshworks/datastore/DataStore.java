@@ -1,4 +1,4 @@
-package com.freshworks.filestore;
+package com.freshworks.datastore;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,7 +18,8 @@ import java.util.TimerTask;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import javax.swing.JFileChooser;
 import org.json.JSONObject;
-import com.freshworks.filestore.exception.FileStoreException;
+
+import com.freshworks.datastore.exception.DataStoreException;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -28,7 +29,7 @@ import com.google.gson.JsonObject;
  * @author MP
  *
  */
-public class KeyStore {
+public class DataStore {
 
 	private String homeDir = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
 	private double fileSize = 1;
@@ -40,29 +41,29 @@ public class KeyStore {
 
 	/**
 	 * Creates file in the default location. Documents in Windows OS
-	 * @throws FileStoreException
+	 * @throws DataStoreException
 	 */
-	KeyStore() throws FileStoreException {
+	DataStore() throws DataStoreException {
 		this.path = new StringBuffer(homeDir).append("\\").append("KeyStore_").append(generateUniqueFileName())
 				.append(".properties").toString();
 		try {
 			createFile(this.path);
 		} catch (IOException e) {
-			throw new FileStoreException("File is already created with the same name");
+			throw new DataStoreException("File is already created with the same name");
 		}
 	}
 
 	/**
 	 * Creates file in the specified location.
-	 * @throws FileStoreException
+	 * @throws DataStoreException
 	 */
-	KeyStore(String path) throws FileStoreException {
+	DataStore(String path) throws DataStoreException {
 		this.path = new StringBuffer(path.isEmpty() ? homeDir : path).append("\\").append("KeyStore_")
 				.append(generateUniqueFileName()).append(".properties").toString();
 		try {
 			createFile(this.path);
 		} catch (IOException e) {
-			throw new FileStoreException("File is already created with the same name");
+			throw new DataStoreException("File is already created with the same name");
 		}
 
 	}
@@ -72,22 +73,22 @@ public class KeyStore {
 		file.createNewFile();
 	}
 
-	public boolean add(String key, JSONObject value) throws IOException, FileStoreException {
+	public boolean add(String key, JSONObject value) throws IOException, DataStoreException {
 		return write(key, value, 0);
 	}
 
-	public boolean add(String key, JSONObject value, long delay) throws IOException, FileStoreException {
+	public boolean add(String key, JSONObject value, long delay) throws IOException, DataStoreException {
 		return write(key, value, delay);
 	}
 
-	private boolean write(String key, JSONObject value, long delay) throws IOException, FileStoreException {
+	private boolean write(String key, JSONObject value, long delay) throws IOException, DataStoreException {
 		checkLength(key);
 		key = key.trim();
 		checkKey(key);
 		BufferedWriter bufferWriter = null;
 		boolean isWrittenToFile = false;
 		if (fileSize() == this.fileSize) {
-			throw new FileStoreException("File size exceeds");
+			throw new DataStoreException("File size exceeds");
 		}
 		try {
 			checkObjectSize(value);
@@ -114,13 +115,13 @@ public class KeyStore {
 	 * Checks the length of the key
 	 * 
 	 * @param key
-	 * @throws FileStoreException
+	 * @throws DataStoreException
 	 */
-	private void checkLength(String key) throws FileStoreException {
+	private void checkLength(String key) throws DataStoreException {
 		if (key == null || key.isEmpty())
-			throw new FileStoreException("Invalid key");
+			throw new DataStoreException("Invalid key");
 		else if (key.trim().length() > allowedLength)
-			throw new FileStoreException("key length is exceeded than 32 characters");
+			throw new DataStoreException("key length is exceeded than 32 characters");
 	}
 
 	/**
@@ -130,7 +131,7 @@ public class KeyStore {
 	 * @return String
 	 * @throws IOException
 	 */
-	private String load(String key) throws IOException, FileStoreException {
+	private String load(String key) throws IOException, DataStoreException {
 		Properties prop = new Properties();
 		try {
 			try (InputStream inputStream = new FileInputStream(path)) {
@@ -149,7 +150,7 @@ public class KeyStore {
 	 * @return JsonObject
 	 * @throws IOException
 	 */
-	public JsonObject get(String key) throws IOException, FileStoreException {
+	public JsonObject get(String key) throws IOException, DataStoreException {
 		validateKey(key);
 		String value = load(key);
 		JsonElement element = new Gson().fromJson(value, JsonElement.class);
@@ -162,14 +163,14 @@ public class KeyStore {
 	 * @param key
 	 * @throws IOException
 	 */
-	private void checkKey(String key) throws FileStoreException, IOException {
+	private void checkKey(String key) throws DataStoreException, IOException {
 		if (load(key) != null) {
-			throw new FileStoreException("Key is already there");
+			throw new DataStoreException("Key is already there");
 		}
 	}
 	
 	
-	private boolean hasKey(String key) throws FileStoreException, IOException {
+	private boolean hasKey(String key) throws DataStoreException, IOException {
 		return (load(key) == null)?false:true;
 	}
 
@@ -197,7 +198,7 @@ public class KeyStore {
 	 * @param key
 	 * @throws IOException
 	 */
-	synchronized public boolean remove(String key) throws IOException, FileStoreException {
+	synchronized public boolean remove(String key) throws IOException, DataStoreException {
 		validateKey(key);
 		FileReader fileReader = new FileReader(path);
 		Properties prop = new Properties();
@@ -222,7 +223,7 @@ public class KeyStore {
 		public void run() {
 			try {
 				remove(key);
-			} catch (IOException | FileStoreException e) {
+			} catch (IOException | DataStoreException e) {
 				e.printStackTrace();
 			}
 			timer.cancel();
@@ -258,17 +259,17 @@ public class KeyStore {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("restriction")
-	private void checkObjectSize(JSONObject jsonObject) throws FileStoreException {
+	private void checkObjectSize(JSONObject jsonObject) throws DataStoreException {
 		if (ObjectSizeCalculator.getObjectSize(jsonObject) / 1024 > allowedJsonSize) {
-			throw new FileStoreException("JSON Size exceeded");
+			throw new DataStoreException("JSON Size exceeded");
 		}
 	}
 	
-	private void validateKey(String key) throws FileStoreException, IOException {
+	private void validateKey(String key) throws DataStoreException, IOException {
 		if (key == null || key.trim().isEmpty())
-			throw new FileStoreException("Invalid key");
+			throw new DataStoreException("Invalid key");
 		else if(!hasKey(key))
-			throw new FileStoreException("Key is not present in the file");
+			throw new DataStoreException("Key is not present in the file");
 	}
 
 	public String getPath() {

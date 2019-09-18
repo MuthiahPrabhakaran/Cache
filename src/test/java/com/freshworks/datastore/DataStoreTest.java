@@ -1,4 +1,4 @@
-package com.freshworks.filestore;
+package com.freshworks.datastore;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,24 +11,25 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.freshworks.filestore.exception.FileStoreException;
+import com.freshworks.datastore.DataStore;
+import com.freshworks.datastore.exception.DataStoreException;
 
 import junit.framework.Assert;
 
-public class KeyStoreTest {
+public class DataStoreTest {
 
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
-	static KeyStore keyStore;
+	static DataStore keyStore;
 	static JSONObject jsonObject;
 	String employeeDetails = "employeeDetails";
 
 	@BeforeClass
 	public static void initializeVariables() {
 		try {
-			keyStore = new KeyStore();
-		} catch (FileStoreException e) {
+			keyStore = new DataStore();
+		} catch (DataStoreException e) {
 			e.printStackTrace();
 		}
 		jsonObject = new JSONObject();
@@ -44,10 +45,10 @@ public class KeyStoreTest {
 
 	@Test
 	public void testCreateFileWithDefinedPath() {
-		KeyStore keyStoreNew = null;
+		DataStore keyStoreNew = null;
 		try {
-			keyStoreNew = new KeyStore(new JFileChooser().getFileSystemView().getDefaultDirectory().toString());
-		} catch (FileStoreException e) {
+			keyStoreNew = new DataStore(new JFileChooser().getFileSystemView().getDefaultDirectory().toString());
+		} catch (DataStoreException e) {
 			e.printStackTrace();
 		}
 		File file = new File(keyStoreNew.getPath());
@@ -57,9 +58,9 @@ public class KeyStoreTest {
 	@Test
 	public void testAdd() {
 		try {
-			Assert.assertTrue(keyStore.add(employeeDetails, jsonObject));
-			Assert.assertEquals(jsonObject.toString(), keyStore.get(employeeDetails).toString());
-		} catch (IOException | FileStoreException e) {
+			Assert.assertTrue(keyStore.add("employee3", jsonObject));
+			Assert.assertEquals(jsonObject.toString(), keyStore.get("employee3").toString());
+		} catch (IOException | DataStoreException e) {
 			e.printStackTrace();
 		}
 	}
@@ -71,7 +72,7 @@ public class KeyStoreTest {
 			Assert.assertEquals(jsonObject.toString(), keyStore.get("employee2").toString());
 			Thread.sleep(10000);
 			keyStore.get("employee2");
-		} catch (IOException | FileStoreException | InterruptedException e) {
+		} catch (IOException | DataStoreException | InterruptedException e) {
 			assertInvalidKey(e);
 		}
 	}
@@ -82,7 +83,7 @@ public class KeyStoreTest {
 			Assert.assertTrue(keyStore.add("employee1", jsonObject));
 			Assert.assertTrue(keyStore.remove("employee1"));
 			keyStore.get("employee1");
-		} catch (IOException | FileStoreException e) {
+		} catch (IOException | DataStoreException e) {
 			assertInvalidKey(e);
 		}
 	}
@@ -91,8 +92,8 @@ public class KeyStoreTest {
 	public void testWithEmptyKey() {
 		try {
 			keyStore.add("", jsonObject);
-		} catch (IOException | FileStoreException e) {
-			Assert.assertTrue(e instanceof FileStoreException);
+		} catch (IOException | DataStoreException e) {
+			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("Invalid key", e.getMessage());
 		}
 	}
@@ -101,8 +102,8 @@ public class KeyStoreTest {
 	public void testWithNullKey() {
 		try {
 			keyStore.add(null, jsonObject);
-		} catch (IOException | FileStoreException e) {
-			Assert.assertTrue(e instanceof FileStoreException);
+		} catch (IOException | DataStoreException e) {
+			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("Invalid key", e.getMessage());
 		}
 	}
@@ -111,8 +112,8 @@ public class KeyStoreTest {
 	public void testWithKeyHas33Chars() {
 		try {
 			keyStore.add("testTestTestTesttestTestTestTestT", jsonObject);
-		} catch (IOException | FileStoreException e) {
-			Assert.assertTrue(e instanceof FileStoreException);
+		} catch (IOException | DataStoreException e) {
+			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("key length is exceeded than 32 characters", e.getMessage());
 		}
 	}
@@ -121,8 +122,8 @@ public class KeyStoreTest {
 	public void testWithDuplicateKey() {
 		try {
 			keyStore.add(employeeDetails, jsonObject);
-		} catch (IOException | FileStoreException e) {
-			Assert.assertTrue(e instanceof FileStoreException);
+		} catch (IOException | DataStoreException e) {
+			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("Key is already there", e.getMessage());
 		}
 	}
@@ -131,7 +132,7 @@ public class KeyStoreTest {
 	public void testLoadWithInvalidKey() {
 		try {
 			keyStore.get("Invalid Key");
-		} catch (FileStoreException | IOException e) {
+		} catch (DataStoreException | IOException e) {
 			assertInvalidKey(e);
 		}
 	}
@@ -140,7 +141,7 @@ public class KeyStoreTest {
 	public void testLoadWithNullKey() {
 		try {
 			keyStore.get(null);
-		} catch (FileStoreException | IOException e) {
+		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}
 	}
@@ -149,7 +150,7 @@ public class KeyStoreTest {
 	public void testLoadWithEmptyKey() {
 		try {
 			keyStore.get(" ");
-		} catch (FileStoreException | IOException e) {
+		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}
 	}
@@ -159,7 +160,7 @@ public class KeyStoreTest {
 	public void testRemoveWithInvalidKey() {
 		try {
 			keyStore.remove("Invalid Key");
-		} catch (FileStoreException | IOException e) {
+		} catch (DataStoreException | IOException e) {
 			assertInvalidKey(e);
 		}
 	}
@@ -168,7 +169,7 @@ public class KeyStoreTest {
 	public void testRemoveWithNullKey() {
 		try {
 			keyStore.remove(null);
-		} catch (FileStoreException | IOException e) {
+		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}
 	}
@@ -177,18 +178,18 @@ public class KeyStoreTest {
 	public void testRemoveWithEmptyKey() {
 		try {
 			keyStore.remove(" ");
-		} catch (FileStoreException | IOException e) {
+		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}
 	}
 	
 	public void assertInvalidKey(Exception e) {
-		Assert.assertTrue(e instanceof FileStoreException);
+		Assert.assertTrue(e instanceof DataStoreException);
 		Assert.assertEquals("Key is not present in the file", e.getMessage());
 	}
 	
 	public void assertEmptyKey(Exception e) {
-		Assert.assertTrue(e instanceof FileStoreException);
+		Assert.assertTrue(e instanceof DataStoreException);
 		Assert.assertEquals("Invalid key", e.getMessage());
 	}
 }
