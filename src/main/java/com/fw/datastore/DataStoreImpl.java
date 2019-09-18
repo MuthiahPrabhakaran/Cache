@@ -1,4 +1,4 @@
-package com.freshworks.datastore;
+package com.fw.datastore;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,7 +19,7 @@ import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import javax.swing.JFileChooser;
 import org.json.JSONObject;
 
-import com.freshworks.datastore.exception.DataStoreException;
+import com.fw.datastore.exception.DataStoreException;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -29,7 +29,7 @@ import com.google.gson.JsonObject;
  * @author MP
  *
  */
-public class DataStore {
+public class DataStoreImpl implements DataStore {
 
 	private String homeDir = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
 	private double fileSize = 1;
@@ -43,7 +43,7 @@ public class DataStore {
 	 * Creates file in the default location. Documents in Windows OS
 	 * @throws DataStoreException
 	 */
-	DataStore() throws DataStoreException {
+	DataStoreImpl() throws DataStoreException {
 		this.path = new StringBuffer(homeDir).append("\\").append("KeyStore_").append(generateUniqueFileName())
 				.append(".properties").toString();
 		try {
@@ -57,7 +57,7 @@ public class DataStore {
 	 * Creates file in the specified location.
 	 * @throws DataStoreException
 	 */
-	DataStore(String path) throws DataStoreException {
+	DataStoreImpl(String path) throws DataStoreException {
 		this.path = new StringBuffer(path.isEmpty() ? homeDir : path).append("\\").append("KeyStore_")
 				.append(generateUniqueFileName()).append(".properties").toString();
 		try {
@@ -73,10 +73,18 @@ public class DataStore {
 		file.createNewFile();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.freshworks.datastore.DataStore#add(java.lang.String, org.json.JSONObject)
+	 */
+	@Override
 	public boolean add(String key, JSONObject value) throws IOException, DataStoreException {
 		return write(key, value, 0);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.freshworks.datastore.DataStore#add(java.lang.String, org.json.JSONObject, long)
+	 */
+	@Override
 	public boolean add(String key, JSONObject value, long delay) throws IOException, DataStoreException {
 		return write(key, value, delay);
 	}
@@ -143,13 +151,10 @@ public class DataStore {
 		return prop.getProperty(key);
 	}
 
-	/**
-	 * Returns the value from the keystore as a JSON object
-	 * 
-	 * @param key
-	 * @return JsonObject
-	 * @throws IOException
+	/* (non-Javadoc)
+	 * @see com.freshworks.datastore.DataStore#get(java.lang.String)
 	 */
+	@Override
 	public JsonObject get(String key) throws IOException, DataStoreException {
 		validateKey(key);
 		String value = load(key);
@@ -192,12 +197,10 @@ public class DataStore {
 		return isAdded;
 	}
 
-	/**
-	 * Removing the key and value from the key store
-	 * 
-	 * @param key
-	 * @throws IOException
+	/* (non-Javadoc)
+	 * @see com.freshworks.datastore.DataStore#remove(java.lang.String)
 	 */
+	@Override
 	synchronized public boolean remove(String key) throws IOException, DataStoreException {
 		validateKey(key);
 		FileReader fileReader = new FileReader(path);

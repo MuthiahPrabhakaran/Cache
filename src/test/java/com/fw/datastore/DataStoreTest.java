@@ -1,4 +1,4 @@
-package com.freshworks.datastore;
+package com.fw.datastore;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +11,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.freshworks.datastore.DataStore;
-import com.freshworks.datastore.exception.DataStoreException;
+import com.fw.datastore.DataStore;
+import com.fw.datastore.DataStoreImpl;
+import com.fw.datastore.exception.DataStoreException;
 
 import junit.framework.Assert;
 
@@ -21,14 +22,14 @@ public class DataStoreTest {
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
-	static DataStore keyStore;
+	static DataStore dataStore;
 	static JSONObject jsonObject;
 	String employeeDetails = "employeeDetails";
 
 	@BeforeClass
 	public static void initializeVariables() {
 		try {
-			keyStore = new DataStore();
+			dataStore = new DataStoreImpl();
 		} catch (DataStoreException e) {
 			e.printStackTrace();
 		}
@@ -39,27 +40,27 @@ public class DataStoreTest {
 
 	@Test
 	public void testCreateFileWithoutDefinedPath() {
-		File file = new File(keyStore.getPath());
+		File file = new File(dataStore.getPath());
 		Assert.assertTrue(file.exists());
 	}
 
 	@Test
 	public void testCreateFileWithDefinedPath() {
-		DataStore keyStoreNew = null;
+		DataStoreImpl dataStoreNew = null;
 		try {
-			keyStoreNew = new DataStore(new JFileChooser().getFileSystemView().getDefaultDirectory().toString());
+			dataStoreNew = new DataStoreImpl(new JFileChooser().getFileSystemView().getDefaultDirectory().toString());
 		} catch (DataStoreException e) {
 			e.printStackTrace();
 		}
-		File file = new File(keyStoreNew.getPath());
+		File file = new File(dataStoreNew.getPath());
 		Assert.assertTrue(file.exists());
 	}
 
 	@Test
 	public void testAdd() {
 		try {
-			Assert.assertTrue(keyStore.add("employee3", jsonObject));
-			Assert.assertEquals(jsonObject.toString(), keyStore.get("employee3").toString());
+			Assert.assertTrue(dataStore.add("employee3", jsonObject));
+			Assert.assertEquals(jsonObject.toString(), dataStore.get("employee3").toString());
 		} catch (IOException | DataStoreException e) {
 			e.printStackTrace();
 		}
@@ -68,10 +69,10 @@ public class DataStoreTest {
 	@Test
 	public void testAddWithTTL() {
 		try {
-			Assert.assertTrue(keyStore.add("employee2", jsonObject, 10));
-			Assert.assertEquals(jsonObject.toString(), keyStore.get("employee2").toString());
+			Assert.assertTrue(dataStore.add("employee2", jsonObject, 10));
+			Assert.assertEquals(jsonObject.toString(), dataStore.get("employee2").toString());
 			Thread.sleep(10000);
-			keyStore.get("employee2");
+			dataStore.get("employee2");
 		} catch (IOException | DataStoreException | InterruptedException e) {
 			assertInvalidKey(e);
 		}
@@ -80,9 +81,9 @@ public class DataStoreTest {
 	@Test
 	public void testRemove() {
 		try {
-			Assert.assertTrue(keyStore.add("employee1", jsonObject));
-			Assert.assertTrue(keyStore.remove("employee1"));
-			keyStore.get("employee1");
+			Assert.assertTrue(dataStore.add("employee1", jsonObject));
+			Assert.assertTrue(dataStore.remove("employee1"));
+			dataStore.get("employee1");
 		} catch (IOException | DataStoreException e) {
 			assertInvalidKey(e);
 		}
@@ -91,7 +92,7 @@ public class DataStoreTest {
 	@Test
 	public void testWithEmptyKey() {
 		try {
-			keyStore.add("", jsonObject);
+			dataStore.add("", jsonObject);
 		} catch (IOException | DataStoreException e) {
 			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("Invalid key", e.getMessage());
@@ -101,7 +102,7 @@ public class DataStoreTest {
 	@Test
 	public void testWithNullKey() {
 		try {
-			keyStore.add(null, jsonObject);
+			dataStore.add(null, jsonObject);
 		} catch (IOException | DataStoreException e) {
 			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("Invalid key", e.getMessage());
@@ -111,7 +112,7 @@ public class DataStoreTest {
 	@Test
 	public void testWithKeyHas33Chars() {
 		try {
-			keyStore.add("testTestTestTesttestTestTestTestT", jsonObject);
+			dataStore.add("testTestTestTesttestTestTestTestT", jsonObject);
 		} catch (IOException | DataStoreException e) {
 			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("key length is exceeded than 32 characters", e.getMessage());
@@ -121,7 +122,7 @@ public class DataStoreTest {
 	@Test
 	public void testWithDuplicateKey() {
 		try {
-			keyStore.add(employeeDetails, jsonObject);
+			dataStore.add(employeeDetails, jsonObject);
 		} catch (IOException | DataStoreException e) {
 			Assert.assertTrue(e instanceof DataStoreException);
 			Assert.assertEquals("Key is already there", e.getMessage());
@@ -131,7 +132,7 @@ public class DataStoreTest {
 	@Test
 	public void testLoadWithInvalidKey() {
 		try {
-			keyStore.get("Invalid Key");
+			dataStore.get("Invalid Key");
 		} catch (DataStoreException | IOException e) {
 			assertInvalidKey(e);
 		}
@@ -140,7 +141,7 @@ public class DataStoreTest {
 	@Test
 	public void testLoadWithNullKey() {
 		try {
-			keyStore.get(null);
+			dataStore.get(null);
 		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}
@@ -149,7 +150,7 @@ public class DataStoreTest {
 	@Test
 	public void testLoadWithEmptyKey() {
 		try {
-			keyStore.get(" ");
+			dataStore.get(" ");
 		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}
@@ -159,7 +160,7 @@ public class DataStoreTest {
 	@Test
 	public void testRemoveWithInvalidKey() {
 		try {
-			keyStore.remove("Invalid Key");
+			dataStore.remove("Invalid Key");
 		} catch (DataStoreException | IOException e) {
 			assertInvalidKey(e);
 		}
@@ -168,7 +169,7 @@ public class DataStoreTest {
 	@Test
 	public void testRemoveWithNullKey() {
 		try {
-			keyStore.remove(null);
+			dataStore.remove(null);
 		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}
@@ -177,7 +178,7 @@ public class DataStoreTest {
 	@Test
 	public void testRemoveWithEmptyKey() {
 		try {
-			keyStore.remove(" ");
+			dataStore.remove(" ");
 		} catch (DataStoreException | IOException e) {
 			assertEmptyKey(e);
 		}

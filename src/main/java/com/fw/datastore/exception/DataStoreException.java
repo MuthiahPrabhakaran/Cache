@@ -1,4 +1,4 @@
-package com.freshworks.datastore.exception;
+package com.fw.datastore.exception;
 
 public class DataStoreException extends Exception{
 	public DataStoreException(){
