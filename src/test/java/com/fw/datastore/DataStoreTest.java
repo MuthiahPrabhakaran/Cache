@@ -12,8 +12,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.fw.datastore.DataStore;
-import com.fw.datastore.DataStoreImpl;
 import com.fw.datastore.exception.DataStoreException;
+import com.fw.datastore.impl.DataStoreImpl;
 
 import junit.framework.Assert;
 

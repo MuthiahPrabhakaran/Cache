@@ -1,4 +1,4 @@
-package com.fw.datastore;
+package com.fw.datastore.impl;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,6 +19,7 @@ import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import javax.swing.JFileChooser;
 import org.json.JSONObject;
 
+import com.fw.datastore.DataStore;
 import com.fw.datastore.exception.DataStoreException;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -43,7 +44,7 @@ public class DataStoreImpl implements DataStore {
 	 * Creates file in the default location. Documents in Windows OS
 	 * @throws DataStoreException
 	 */
-	DataStoreImpl() throws DataStoreException {
+	public DataStoreImpl() throws DataStoreException {
 		this.path = new StringBuffer(homeDir).append("\\").append("KeyStore_").append(generateUniqueFileName())
 				.append(".properties").toString();
 		try {
@@ -57,7 +58,7 @@ public class DataStoreImpl implements DataStore {
 	 * Creates file in the specified location.
 	 * @throws DataStoreException
 	 */
-	DataStoreImpl(String path) throws DataStoreException {
+	public DataStoreImpl(String path) throws DataStoreException {
 		this.path = new StringBuffer(path.isEmpty() ? homeDir : path).append("\\").append("KeyStore_")
 				.append(generateUniqueFileName()).append(".properties").toString();
 		try {
