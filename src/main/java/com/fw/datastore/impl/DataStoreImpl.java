@@ -75,7 +75,7 @@ public class DataStoreImpl implements DataStore {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.freshworks.datastore.DataStore#add(java.lang.String, org.json.JSONObject)
+	 * @see com.fw.datastore.DataStoreImpl#add(java.lang.String, org.json.JSONObject)
 	 */
 	@Override
 	public boolean add(String key, JSONObject value) throws IOException, DataStoreException {
@@ -83,7 +83,7 @@ public class DataStoreImpl implements DataStore {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.freshworks.datastore.DataStore#add(java.lang.String, org.json.JSONObject, long)
+	 * @see com.fw.datastore.DataStoreImpl#add(java.lang.String, org.json.JSONObject, long)
 	 */
 	@Override
 	public boolean add(String key, JSONObject value, long delay) throws IOException, DataStoreException {
