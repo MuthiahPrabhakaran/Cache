@@ -64,7 +64,7 @@ public class DataStoreImpl implements DataStore {
 		try {
 			createFile(this.path);
 		} catch (IOException e) {
-			throw new DataStoreException("File is already created with the same name");
+			throw new DataStoreException("Invalid Location/File is already created with the same name");
 		}
 
 	}
