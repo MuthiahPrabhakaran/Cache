@@ -1,6 +1,8 @@
-package com.fw.datastore.exception;
+package com.mp.datastore.exception;
 
-public class DataStoreException extends Exception{
+import java.io.Serializable;
+
+public class DataStoreException extends Exception implements Serializable {
 
 	/**
 	 * 

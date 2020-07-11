@@ -1,4 +1,4 @@
-package com.fw.datastore;
+package com.mp.datastore;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,9 +11,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.fw.datastore.DataStore;
-import com.fw.datastore.exception.DataStoreException;
-import com.fw.datastore.impl.DataStoreImpl;
+import com.mp.datastore.exception.DataStoreException;
+import com.mp.datastore.impl.DataStoreImpl;
 
 import junit.framework.Assert;
 

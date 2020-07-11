@@ -1,10 +1,10 @@
-package com.fw.datastore;
+package com.mp.datastore;
 
 import java.io.IOException;
 
 import org.json.JSONObject;
 
-import com.fw.datastore.exception.DataStoreException;
+import com.mp.datastore.exception.DataStoreException;
 import com.google.gson.JsonObject;
 
 public interface DataStore {

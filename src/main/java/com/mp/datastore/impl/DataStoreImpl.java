@@ -1,4 +1,4 @@
-package com.fw.datastore.impl;
+package com.mp.datastore.impl;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,11 +16,11 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
+import com.mp.datastore.DataStore;
+import com.mp.datastore.exception.DataStoreException;
 import javax.swing.JFileChooser;
 import org.json.JSONObject;
 
-import com.fw.datastore.DataStore;
-import com.fw.datastore.exception.DataStoreException;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -152,9 +152,6 @@ public class DataStoreImpl implements DataStore {
 		return prop.getProperty(key);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.freshworks.datastore.DataStore#get(java.lang.String)
-	 */
 	@Override
 	public JsonObject get(String key) throws IOException, DataStoreException {
 		validateKey(key);
@@ -198,9 +195,7 @@ public class DataStoreImpl implements DataStore {
 		return isAdded;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.freshworks.datastore.DataStore#remove(java.lang.String)
-	 */
+
 	@Override
 	synchronized public boolean remove(String key) throws IOException, DataStoreException {
 		validateKey(key);
